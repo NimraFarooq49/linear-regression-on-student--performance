@@ -1,37 +1,35 @@
 import streamlit as st
-import numpy as np
+import pandas as pd
 import pickle
 
-# ================================
-# Load Trained Model
-# ================================
-model_path = "linear_regression_student_performance.pkl"
+# Load model bundle
+with open("student_model.pkl", "rb") as f:
+    data = pickle.load(f)
 
-with open(model_path, "rb") as file:
-    model = pickle.load(file)
+model = data["model"]
+FEATURES = data["features"]
 
-# ================================
-# Streamlit UI
-# ================================
-st.set_page_config(page_title="Student Performance Prediction", layout="centered")
+st.title("🎓 Student Performance Predictor")
 
-st.title("🎓 Student Performance Prediction App")
-st.write("Enter student details to predict performance score")
+# Inputs
+hours = st.number_input("Hours Studied", 0.0, 24.0)
+previous = st.number_input("Previous Scores", 0.0, 100.0)
 
-# ================================
-# Input Fields (MATCH DATASET)
-# ================================
-hours_studied = st.number_input("Hours Studied", min_value=0.0, max_value=24.0, step=0.5)
-previous_scores = st.number_input("Previous Scores", min_value=0.0, max_value=100.0, step=1.0)
-attendance = st.number_input("Attendance (%)", min_value=0.0, max_value=100.0, step=1.0)
-sleep_hours = st.number_input("Sleep Hours", min_value=0.0, max_value=24.0, step=0.5)
-practice_tests = st.number_input("Number of Practice Tests", min_value=0, step=1)
+extra = st.selectbox(
+    "Extracurricular Activities",
+    [0, 1],
+    format_func=lambda x: "Yes" if x == 1 else "No"
+)
 
-# ================================
-# Prediction
-# ================================
+sleep = st.number_input("Sleep Hours", 0.0, 24.0)
+papers = st.number_input("Sample Question Papers Practiced", 0)
+
+# Create DataFrame (KEY FIX 🔥)
+input_df = pd.DataFrame([[
+    hours, previous, extra, sleep, papers
+]], columns=FEATURES)
+
 if st.button("Predict Performance"):
-    input_data = np.array([[hours_studied, previous_scores, attendance, sleep_hours, practice_tests]])
-    prediction = model.predict(input_data)
-
+    prediction = model.predict(input_df)
     st.success(f"📊 Predicted Performance Index: {prediction[0]:.2f}")
+
