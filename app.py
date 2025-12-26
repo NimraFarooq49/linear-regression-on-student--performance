@@ -3,45 +3,39 @@ import pandas as pd
 import numpy as np
 import pickle
 
-# Load Model
-@st.cache_resource
-def load_model():
-    # File name aapki uploaded file ke mutabiq hai
-    with open("linear_regression_student_performance.pkl", "rb") as f:
-        model = pickle.load(f)
-    return model
+# ================================
+# Load Trained Model
+# ================================
+model_path = "linear_regression_student_performance.pkl"
 
-model = load_model()
+with open(model_path, "rb") as file:
+    model = pickle.load(file)
 
-st.title("🎓 Student GPA Predictor")
+st.set_page_config(page_title="Student Performance Predictor", layout="centered")
 
-with st.form("main_form"):
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        s_id = st.number_input("Student ID", value=1001)
-        age = st.number_input("Age", 15, 20, 18)
-        gender = st.selectbox("Gender (0=F, 1=M)", [0, 1])
-        eth = st.selectbox("Ethnicity (0-3)", [0, 1, 2, 3])
-        p_edu = st.selectbox("Parental Education (0-4)", [0, 1, 2, 3, 4])
-        study = st.number_input("Study Time Weekly (Hours)", 0, 40, 10)
-        absent = st.number_input("Absences", 0, 30, 0)
+st.title("🎓 Student Performance Prediction App")
+st.write("Linear Regression model based on student performance dataset")
 
-    with col2:
-        tutor = st.selectbox("Tutoring (0=No, 1=Yes)", [0, 1])
-        p_supp = st.selectbox("Parental Support (0-4)", [0, 1, 2, 3, 4])
-        extra = st.selectbox("Extracurricular (0/1)", [0, 1])
-        sports = st.selectbox("Sports (0/1)", [0, 1])
-        music = st.selectbox("Music (0/1)", [0, 1])
-        vol = st.selectbox("Volunteering (0/1)", [0, 1])
-        dummy_gpa = 0.0 # Ye 14th feature hai jo model ko chahiye
+# ================================
+# User Input Section
+# ================================
+st.header("Enter Student Details")
 
-    submit = st.form_submit_button("Predict Now")
+# ⚠️ IMPORTANT:
+# Ye input columns tumhare dataset ke numeric columns ke naam ke hisaab se hone chahiye
+# Example values common Kaggle dataset ke basis par diye gaye hain
 
-if submit:
-    # Model expects 14 features in this exact order 
-    features = np.array([[s_id, age, gender, eth, p_edu, study, absent, 
-                          tutor, p_supp, extra, sports, music, vol, dummy_gpa]])
-    
-    prediction = model.predict(features)
-    st.success(f"### Predicted GPA: {prediction[0]:.2f}")
+hours_studied = st.number_input("Hours Studied", min_value=0.0, max_value=24.0, value=5.0)
+previous_scores = st.number_input("Previous Scores", min_value=0.0, max_value=100.0, value=70.0)
+attendance = st.number_input("Attendance (%)", min_value=0.0, max_value=100.0, value=80.0)
+sleep_hours = st.number_input("Sleep Hours", min_value=0.0, max_value=12.0, value=7.0)
+sample_papers = st.number_input("Sample Question Papers Practiced", min_value=0.0, max_value=50.0, value=10.0)
+
+# ================================
+# Prediction
+# ================================
+if st.button("Predict Performance"):
+    input_data = np.array([[hours_studied, previous_scores, attendance, sleep_hours, sample_papers]])
+    prediction = model.predict(input_data)
+
+    st.success(f"📊 Predicted Performance Index: **{prediction[0]:.2f}**")
